@@ -12,6 +12,8 @@ a simple Command-Line-Rat-Tool with C++ for Linux
 
 ## how to work
 
+![](https://github.com/liu-9969/TSH/blob/main/img/Linux%20%E8%BF%9C%E6%8E%A7TSH%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E5%9B%BE.jpg)
+
 ## planned for future
 
 * aes对称加密
