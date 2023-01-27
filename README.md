@@ -4,13 +4,25 @@ a simple Command-Line-Rat-Tool with C++ for Linux
 
 ## Features
 
+done:
+
 * 反弹交互式shell
-* 文件传输
-  * 断点续传、分片、进度条、同步异步两种模式
+* 文件传输（断点续传、分片、进度条、同步异步两种模式）
 * http协议
 * 快速切换session
 * session列表增删改查
-* agent重启
+
+
+
+planed for future
+
+* 流量加密：aes对称加密、https
+* agent保活：健康检查、错误处理、开机自启
+* 正向建立连接
+* 优化类设计、资源管理
+* 文件夹下载
+
+
 
 ## Screenshot
 
@@ -24,12 +36,9 @@ more in img
 
 ## planned for future
 
-* aes对称加密、https
-* agent端保活机制、开机自启
-* 正向手动添加agent连接
-* 优化资源的释放（包括自定义资源、连接、线程）
-
 
 
 ## how to use
 
+1. set: core/setting.h 、Log/log.conf
+2. make
