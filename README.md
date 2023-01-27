@@ -12,6 +12,12 @@ a simple Command-Line-Rat-Tool with C++ for Linux
 * session列表增删改查
 * agent重启
 
+## Screenshot
+
+more in img
+
+![](https://github.com/liu-9969/TSH/blob/main/img/CC%E6%8E%A7%E5%88%B6%E5%8F%B01.png)
+
 ## how to work
 
 ![](https://github.com/liu-9969/TSH/blob/main/img/Linux%20%E8%BF%9C%E6%8E%A7TSH%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E5%9B%BE.png)
