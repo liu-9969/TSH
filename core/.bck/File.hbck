@@ -1,0 +1,154 @@
+#include <iostream>
+#include <string.h>
+#include <string>
+#include <map>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#include <libgen.h>
+#include "net/HttpRequest.h"
+#include "net/HttpResponse.h"
+#include <queue>
+#include <thread>
+#include <map>
+#include <mutex>
+#include <condition_variable>
+#include <functional>
+#include "FileManager.h"
+
+#define FTP_ERROR -100
+#define FTP_SUCCESS -99
+#define FTP_CLOSE -98
+#define FTP_STOP -94
+
+extern std::map<string, string> URL_;
+class FtpClient
+{
+public:
+	FtpClient(HttpResponse *httpHandler) : httpHandler_(httpHandler)
+	{
+		ftpCmd_ = {
+			{"ftp_stop", 1},
+			{"", 2},
+			{"ls", 3},
+			{"help", 4},
+			{"get", 5},
+			{"put", 6},
+			{"error", 7}};
+
+		
+	}
+
+	void setonFileDownload_(const fileDownloadCallBack &cb) { onFileDownload_ = cb; }
+    void setonFileUpload_(const fileUploadCallBack &cb) { onFileUpload_ = cb; }
+	int start();
+	int getFile(std::vector<string> splitCmd);
+	int putFile();
+	int ftp_stop();
+
+private:
+	int _preFtp(); // split and check locatPath
+	void _progress_bar(const char *file_name, float sum, float file_size);
+	int _getLine();
+	void help();
+	std::vector<string> _split(const string &str, char pattern);
+
+private:
+	string cmd_;
+
+	
+	HttpResponse *httpHandler_;
+	std::map<string, int> ftpCmd_;
+};
+
+
+
+
+
+
+
+
+#include <sys/prctl.h>
+using File_JobFunction = std::function<void()>;
+
+int FtpClient::ftp_stop()
+{
+	int Errno;
+	HttpResquest request;
+	request.setUrl(URL_["FileAPI"]);
+	request.setMethod("GET");
+	// request.setQuery(splitCmd_[1]);
+	request.addHeader("Ftp-Cmd", splitCmd_[0]);
+	request.createRequest(&(httpHandler_->outBuff_));
+	httpHandler_->write(&Errno);
+	return 0;
+}
+
+void FtpClient::help()
+{
+	std::cout << "\n-----------------------------[ftp cmd]-----------------------------------\n";
+	std::cout << "  [  ftp_stop  ]                     exit ftp module\n";
+	std::cout << "  [ get RPF LP ]                     get a file\n";
+	std::cout << "  [ put LPF RP ]                     put a file\n";
+	std::cout << "  [     ls     ]                     NULL NULL\n";
+	std::cout << "-------------------------------------------------------------------------\n\n";
+}
+
+int FtpClient::_getLine()
+{
+	std::cout << "\033[34m"
+			  << "\033[1m "
+			  << "TSH_CC/FTP > "
+			  << "\033[0m"; // 蓝色显示
+
+	string cmd;
+	getline(std::cin, cmd);
+
+	splitCmd_ = _split(cmd, ' ');
+	if (splitCmd_.size() == 0)
+	{
+		splitCmd_.push_back("");
+	}
+
+	if (ftpCmd_.find(splitCmd_[0]) == ftpCmd_.end())
+	{
+		splitCmd_[0] = "error";
+	}
+}
+
+int FtpClient::start()
+{
+	while (1)
+	{
+		httpHandler_->resetParse();
+
+		_getLine();
+
+		switch (ftpCmd_[splitCmd_[0]])
+		{
+		case 1: // return to mian-loop
+			return ftp_stop();
+
+		case 2: // emter
+			break;
+
+		case 3: // ls
+			break;
+
+		case 4: // help
+			help();
+			break;
+
+		case 5:
+			getFile(); // 返回值处理？
+			break;
+
+		case 6: // putfile
+			break;
+
+		case 7: // error input
+			break;
+		}
+	}
+}

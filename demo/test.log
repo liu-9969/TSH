@@ -1,0 +1,4 @@
+2023-01-18 02:28:19.461193 D [logtest.cpp:14] A debug message
+2023-01-18 02:28:19.461371 I An info message
+2023-01-18 02:29:47.371340 D [logtest.cpp:14] A debug message
+2023-01-18 02:29:47.371433 I An info message

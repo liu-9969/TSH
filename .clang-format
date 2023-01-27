@@ -1,0 +1,128 @@
+---
+AlignAfterOpenBracket:    Align
+# 连续赋值时，对齐所有等号
+AlignConsecutiveAssignments:    true
+# 连续声明时，对齐所有声明的变量名
+
+# 对齐连续的尾随的注释
+AlignTrailingComments:    true
+# 允许函数声明的所有参数在放在下一行
+AllowAllParametersOfDeclarationOnNextLine:    true
+# 允许短的块放在同一行
+AllowShortBlocksOnASingleLine:    false
+
+# 在三元运算符前换行
+BreakBeforeTernaryOperators:    true
+# 在构造函数的初始化列表的逗号前换行
+
+
+# BasedOnStyle:  WebKit
+AccessModifierOffset: -4
+AlignConsecutiveDeclarations: true
+AlignEscapedNewlinesLeft: false
+AlignOperands:   true
+
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakAfterDefinitionReturnType: None
+AlwaysBreakAfterReturnType: None
+AlwaysBreakBeforeMultilineStrings: false
+AlwaysBreakTemplateDeclarations: Yes
+BinPackArguments: true
+BinPackParameters: true
+BraceWrapping:   
+  AfterClass:      false
+  AfterControlStatement: false
+  AfterEnum:       false
+  AfterFunction:   true
+  AfterNamespace:  false
+  AfterObjCDeclaration: false
+  AfterStruct:     false
+  AfterUnion:      false
+  BeforeCatch:     true
+  BeforeElse:      false
+  IndentBraces:    false
+# 大括号换行，只有当BreakBeforeBraces设置为Custom时才有效
+#   在大括号前换行: Attach(始终将大括号附加到周围的上下文), Linux(除函数、命名空间和类定义，与Attach类似),
+#   Mozilla(除枚举、函数、记录定义，与Attach类似), Stroustrup(除函数定义、catch、else，与Attach类似),
+#   Allman(总是在大括号前换行), GNU(总是在大括号前换行，并对于控制语句的大括号增加额外的缩进), WebKit(在函数前换行), Custom
+; BreakBeforeBinaryOperators: GNU
+BreakBeforeBraces: Custom
+BraceWrapping:
+# class定义后面
+  AfterClass:      false
+# 控制语句后面
+  AfterControlStatement: false
+# enum定义后面
+  AfterEnum:       false
+# 函数定义后面 （OC无效）
+  AfterFunction:   false
+# 命名空间定义后面
+  AfterNamespace:  false
+# ObjC定义后面
+  AfterObjCDeclaration: false
+# Struct结构体定义后面
+  AfterStruct:     false
+# Union定义后面
+  AfterUnion:      false
+# Extern 定义后面
+  AfterExternBlock: false
+# Catch之前
+  BeforeCatch:     false
+# Else之前
+  BeforeElse:      false
+# 缩进大括号
+  IndentBraces:    false
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializers: BeforeColon
+ColumnLimit:     76
+CommentPragmas:  '^ IWYU pragma:'
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+ConstructorInitializerIndentWidth: 4
+ContinuationIndentWidth: 4
+Cpp11BracedListStyle: true
+DerivePointerAlignment: false
+DisableFormat:   false
+ExperimentalAutoDetectBinPacking: false
+ForEachMacros:   [ foreach, Q_FOREACH, BOOST_FOREACH ]
+IncludeCategories: 
+  - Regex:           '^<.*\.hpp>$'
+    Priority:        3
+  - Regex:           '^<.*\.h>$'
+    Priority:        1
+  - Regex:           '^<'
+    Priority:        2
+  - Regex:           '.*'
+    Priority:        4
+IncludeIsMainRegex: '(_test)?$'
+IndentCaseLabels: true
+IndentWidth:     4
+IndentWrappedFunctionNames: false
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+NamespaceIndentation: Inner
+PenaltyBreakBeforeFirstCallParameter: 19
+PenaltyBreakComment: 300
+PenaltyBreakFirstLessLess: 120
+PenaltyBreakString: 1000
+PenaltyExcessCharacter: 1000000
+PenaltyReturnTypeOnItsOwnLine: 60
+PointerAlignment: Left
+ReflowComments:  true
+SortIncludes:    true
+SpaceAfterCStyleCast: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 2
+SpacesInAngles:  false
+SpacesInContainerLiterals: true
+SpacesInCStyleCastParentheses: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+Standard:        Latest
+TabWidth:        4
+UseTab:          Never
+...
