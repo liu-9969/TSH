@@ -109,12 +109,15 @@ void SShd::init() {
 
     // 父进程(main)即将陷入shell loop
     else {
+#ifndef AGENT_BACK
         std::cout << "sshd::init(): 父进程陷入shell-loop(master-pty" << pty_
                   << "), "
                   << "子进程进入bash(slave-tty\n"
                   << tty_ << ")\n";
         close(tty_);
+#endif
         return;
+
     }
 }
 
@@ -179,13 +182,15 @@ int SShd::_events_pty_readable() {
     while (1) {
         ret = _outBuff.readFd(pty_, &Errno);
         if (ret == 0) {
-            perror("SShd::_events_pty_readable()ret==0:");
             return ERROR;
         }
         if (ret < 0 && Errno != EAGAIN) {
+#ifndef AGENT_BACK
             perror("SShd::_events_pty_readable()ret==-1:");
+#endif
             return ERROR;
         }
+
         if (ret < 0 && Errno == EAGAIN) {
             break;
         }
@@ -193,8 +198,10 @@ int SShd::_events_pty_readable() {
 
     // 打包发送
     if (_outBuff.readableBytes() > 0) {
+#ifndef AGENT_BACK
         std::cout << "SSH-Server发送数据包(body) 长度"
                   << _outBuff.readableBytes() << std::endl;
+#endif
         HttpResponse response(false);
         response.setStatusCode(200);
         response.addHeader("Action", "3");
@@ -260,12 +267,12 @@ int SShd::_events_CC_readable() {
 int SShd::_setNonBlock(int fd) {
     int flag = ::fcntl(fd, F_GETFL, 0);
     if (flag == -1) {
-        printf("utils::setNonBlock[%d],listenFd:%s\n", fd, strerror(errno));
+        // printf("utils::setNonBlock[%d],listenFd:%s\n", fd, strerror(errno));
         return -1;
     }
     flag |= O_NONBLOCK;
     if (::fcntl(fd, F_SETFL, flag) == -1) {
-        printf("utils::setNonBlock[%d],listenFd:%s\n", fd, strerror(errno));
+        // printf("utils::setNonBlock[%d],listenFd:%s\n", fd, strerror(errno));
         return -1;
     }
     return 0;

@@ -8,16 +8,13 @@
 
 int main() {
     int pid;
+    
     // 1. fork into background
 #ifdef AGENT_BACK
     pid = fork();
 
-    if (pid < 0) {
+    if (pid < 0 || pid > 0) {
         return -1;
-    }
-
-    if (pid > 0) {
-        return 0;
     }
 
     if (setsid() < 0) {

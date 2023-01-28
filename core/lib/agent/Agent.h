@@ -10,6 +10,7 @@
 #include "net/HttpRequest.h"
 #include "net/HttpResponse.h"
 #include "SShd.h"
+#include "../../setting.h"
 
 /**
  * @brief agent as a httpserver，also as the initiator of the tcp connection

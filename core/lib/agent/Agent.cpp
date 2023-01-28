@@ -1,13 +1,12 @@
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <fcntl.h>
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include <netdb.h>
-#include <sys/select.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/prctl.h>
+#include <sys/select.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include "Agent.h"
@@ -44,11 +43,15 @@ int HttpServer::_connec() {
                               sizeof(server_addr));
             if (ret < 0) {
                 sleep(3);
-                std::cout << "等待接受我的连接申请\n";
+#ifndef AGENT_BACK
+                std::cout << "wait for accept my connect\n";
+#endif
             }
 
             else {
-                std::cout << "连接成功\n";
+#ifndef AGENT_BACK
+                std::cout << "connect success\n";
+#endif
                 break;
             }
         }
@@ -63,7 +66,7 @@ int HttpServer::_connec() {
 #include <sys/utsname.h>
 int HttpServer::_Response_osInfo() {
     // 用shellFd传输
-    HttpRequest* httpHandler_ = new HttpRequest(fds_[0]);
+    HttpRequest*   httpHandler_ = new HttpRequest(fds_[0]);
     int            Errno, fb = 0;
     struct utsname os_Info;
     string         sysname;
@@ -137,7 +140,7 @@ int HttpServer::getFile(HttpRequest* httpHandler, string path) {
     // pre tarsf
     if (access(path.c_str(), 0) != F_OK ||
         stat(path.c_str(), &buffer) != 0 || (!S_ISREG(buffer.st_mode))) {
-        std::cout << "\n[invalid local path]: Please check and try again\n";
+        // std::cout << "\n[invalid local path]: Please check and try again\n";
         HttpResponse response(404);
         response.createResponse(&(httpHandler->outBuff_));
         ret = httpHandler->write(&Errno);
@@ -167,13 +170,16 @@ int HttpServer::getFile(HttpRequest* httpHandler, string path) {
             ret = httpHandler->write(&Errno);
             sum += tem;
 
+#ifndef AGENT_BACK
             std::cout << "[FTP_Server] 请求文件大小:" << size
                       << "   目前总计发了:" << sum
                       << " 本次实际发送了(算http头):" << ret << std::endl;
-
+#endif
             if (ret <= 0) {
+#ifndef AGENT_BACK
                 std::cout << "Ftpd::getFile():httpHandler->write Error"
                           << Errno << "\n";
+#endif
                 return CLOSE;
             }
         }
@@ -182,13 +188,12 @@ int HttpServer::getFile(HttpRequest* httpHandler, string path) {
             break;
         }
     }
-    
-    delete(httpHandler);
+
+    delete (httpHandler);
     return SUCCESS;
 }
 
-int HttpServer::httpServerResart()
-{
+int HttpServer::httpServerResart() {
     // free all resource
 
     // _connec();
