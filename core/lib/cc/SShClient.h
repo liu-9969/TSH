@@ -29,6 +29,7 @@ public:
         : again_(false),
           cc_(cc),
           id_(id),
+          login_(true),
           httpHandler_(httpHandler),
           onFileDownload_(std::bind(&SShClient::getFile, this,
                                     std::placeholders::_1,
@@ -40,11 +41,14 @@ public:
                         {"cur_target",4},
                         {"get",       5},
                         {"put",       6},
-                        {"stop",      7}
+                        {"stop",      7},
+                        {"",          8}
                       };
     }
     // clang-format on
-    ~SShClient() {}
+    ~SShClient() {
+
+    }
 
 private:
     void init();
@@ -74,7 +78,7 @@ private:
     bool again_;
     CC*  cc_;
     int  id_;
-
+    bool login_; // for filter first response
     std::shared_ptr<HttpResponse> httpHandler_;
     fileDownloadCallBack          onFileDownload_;
     fileUploadCallBack            onFileUpload_;

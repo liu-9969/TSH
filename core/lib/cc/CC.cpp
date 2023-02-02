@@ -86,12 +86,14 @@ string CC::CC_get_line(int* id) {
     return cmd;
 }
 
-void CC::msg_notify(string& msg) {
-    std::cout << "\033[5"
+void CC::msg_notify(string& msg, bool enter) {
+    std::cout << "\n"
+              << "\033[5"
               << "\033[33m "
-              << " Notice: " << msg << " (hint: continue by Enter)"
-              << std::endl
+              << " NOTICE: " << msg << "\n"
               << "\033[0m";
+     if(enter)
+        CC_print_linePrompt(curId_);
 }
 
 #if 0
@@ -149,25 +151,7 @@ int CC::CC_rshell_start(int id) {
 }
 
 // clang-format off
-void CC::CC_help_printf()
-{
-    std::cout << "\n\033[34m"
-              << "\033[1m"
-              << "you can use this cmds in any where"
-              << "\033[0m"
-              << "\n";
 
-    std::cout << "-----------------------------------------------------------------------------------------------\n";
-    std::cout << " [     help    ]             print this\n";
-    std::cout << " [  ls_target  ]             list agents that online\n";
-    std::cout << " [  target id  ]             select one target and return you a shell\n";
-    std::cout << " [ cur_target  ]             show current target infomation\n";
-    std::cout << " [     stop    ]             stop the current shell to return main console\n";
-    std::cout << " [ get [-d] RPF LP ]         download file, \n";
-    std::cout << " [ put [-d] LPF RP ]         upload file\n";
-    std::cout << " ps:                      R:remote、L:local、P:path F:filename、-d:background、[]:option\n";
-    std::cout << "-----------------------------------------------------------------------------------------------\n\n";
-}
 // clang-format on
 
 void CC::_start_CC_Listener() {
@@ -265,9 +249,9 @@ int CC::utils(int fd) {
 
 /**
  * @brief add a agent
- *        the newAdd-id is bigger than any id 
+ *        the newAdd-id is bigger than any id
  * @return status
-*/
+ */
 int CC::addAgent(int fd1, int fd2, struct sockaddr_in* clientAddr_) {
     int                            ret = 0;
     std::shared_ptr<AgentResource> agent =
@@ -312,7 +296,6 @@ int CC::addAgent(int fd1, int fd2, struct sockaddr_in* clientAddr_) {
     LOG(INFO) << msg;
 
     msg_notify(msg);
-
     return SUCCESS;
 }
 
@@ -334,13 +317,33 @@ void CC::delAgent(int id) {
     curId_ = -1;
 }
 
-
 // clang-format off
 #include <iomanip>
 using std::cout;
 using std::endl;
 using std::left;
 using std::setw;
+
+void CC::CC_help_printf()
+{
+    std::cout << "\n\033[34m"
+              << "\033[1m"
+              << "you can use this cmds in any where"
+              << "\033[0m"
+              << "\n";
+
+    std::cout << "-----------------------------------------------------------------------------------------------\n";
+    std::cout << " [     help    ]             print this\n";
+    std::cout << " [  ls_target  ]             list agents that online\n";
+    std::cout << " [  target id  ]             select one target and return you a shell\n";
+    std::cout << " [ cur_target  ]             show current target infomation\n";
+    std::cout << " [     stop    ]             stop the current shell to return main console\n";
+    std::cout << " [ get [-d] RPF LP ]         download file, \n";
+    std::cout << " [ put [-d] LPF RP ]         upload file\n";
+    std::cout << " ps:                      R:remote、L:local、P:path F:filename、-d:background、[]:option\n";
+    std::cout << "-----------------------------------------------------------------------------------------------\n\n";
+}
+
 void CC::CC_target_list()
 {
     std::cout << "\n------------------------------------------------------------------------------------------------" << std::endl;
@@ -361,6 +364,31 @@ void CC::CC_target_list()
     std::cout << "------------------------------------------------------------------------------------------------\n" << std::endl;
 }
 
+void CC::CC_target_current() {
+    int id = curId_;
+
+    if (id < 0 || agentMaps_.size() == 0) {
+        std::cout << "\nyou haven't selected any taget or no one online\n";
+        return;
+    }
+    
+    std::cout << "\n\033[34m"
+              << "\033[1m"
+              << "current target infomation"
+              << "\033[0m"
+              << "\n";
+              
+    std::cout << "\n-----------------------------------------------------------" << std::endl;
+    std::cout << "  id: " << id << "\n";
+    std::cout << "  OS: " << agentMaps_[id]->Information_->os_ << "\n";
+    std::cout << "  IP: " << agentMaps_[id]->Information_->ip_ << ":"
+              << agentMaps_[id]->Information_->port_ << "\n";
+    std::cout << "  uid: " << agentMaps_[id]->Information_->uid_ << "\n";
+    std::cout << "  pid: " << agentMaps_[id]->Information_->pid_ << "\n\n";
+    return;
+    std::cout << "-------------------------------------------------------------\n" << std::endl;
+}
+
 void CC::CC_print_logo() {
     
     std::cout << "\033[32m"<<"\033[1m";
@@ -375,43 +403,30 @@ void CC::CC_print_logo() {
     std::cout << "                     |_||___||_|  \\\\_| |___/   |____/|_| |_| \\___||___|___|           "         << std::endl << std::endl;
 
     std::cout << "Version: 0.0.1\n";
-    std::cout << "Author: liuxiangle\n";
-    std::cout << "ps:this is a tiny rat, you can input help to use it\n";
+    std::cout << "Author: Mr.Liu\n";
+    std::cout << "input help to use it\n";
 
     std::cout << "\033[0m";
-}
-// clang-format on
-
-void CC::CC_target_current() {
-    int id = curId_;
-
-    if (id < 0 || agentMaps_.size() == 0) {
-        std::cout << "\nyou haven't selected any taget or no one online\n";
-        return;
-    }
-    std::cout << "\ncurrent target infomation: "
-              << "\n";
-    std::cout << "  id: " << id << "\n";
-    std::cout << "  OS: " << agentMaps_[id]->Information_->os_ << "\n";
-    std::cout << "  IP: " << agentMaps_[id]->Information_->ip_ << ":"
-              << agentMaps_[id]->Information_->port_ << "\n";
-    std::cout << "  uid: " << agentMaps_[id]->Information_->uid_ << "\n";
-    std::cout << "  pid: " << agentMaps_[id]->Information_->pid_ << "\n\n";
-    return;
+    
 }
 
 void CC::CC_print_linePrompt(int id) {
+    // 立即输出
+    std::cout << std::unitbuf;
+
     if (id < 0) {
         std::cout << "\033[34m"
-                  << "\033[1m "
+                  << "\033[1m"
                   << "TSH_CC > "
                   << "\033[0m";
-    } else {
-        std::cout << "\033[34m"
-                  << "\033[1m "
-                  << "TSH_CC/"
-                  << "\033[31m" << agentMaps_[id]->Information_->ip_
-                  << " > "
-                  << "\033[0m";
+    } 
+    else 
+    {
+        std::cout << "\033[34m" << "\033[1m" << "TSH_CC/";
+        std::cout << "\033[31m" << agentMaps_[id]->Information_->ip_ ;
+        std::cout << " > " << "\033[0m";
     }
+    std::cout << std::nounitbuf;
+    return ;
 }
+// clang-format on

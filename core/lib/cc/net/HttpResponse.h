@@ -35,7 +35,7 @@ public:
     // listener_(ip, port){}
 
     ~HttpResponse() {
-        close (fd_);
+        // close (fd_);
     }
 
     // int listener();
@@ -55,6 +55,7 @@ public:
     std::string getHeader(const std::string& field) const;
     std::string getBodyByString();
     int         getBodyToFd(int fd, int len, int* Errno);
+    void        throwAwayBody();
     int         getFd() {
         return fd_;
     }

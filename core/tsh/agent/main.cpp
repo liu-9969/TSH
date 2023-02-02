@@ -50,7 +50,7 @@ int main() {
         }
     }
 
-    // 4. health check
+    // // 4. health check
     else if (pid > 0) {
         while (1) {
             waitpid(pid, NULL, WUNTRACED);
@@ -77,6 +77,11 @@ int main() {
             }
         }
     }
+
+    // while(1)
+    // {
+    //     sleep(2);
+    // }
 
     return 0;
 }

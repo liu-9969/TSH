@@ -28,6 +28,12 @@ struct Information {
 
     int ccFd;
     int fileFd;
+
+    ~Information()
+    {
+        close(ccFd);
+        close(fileFd);
+    }
 };
 
 class AgentResource {
@@ -40,7 +46,12 @@ public:
     std::shared_ptr<Information>  Information_;
     std::shared_ptr<HttpResponse> HttpClient_;
     std::shared_ptr<SShClient>    SShClient_;
-    int                           id_;  //
+    int                           id_;
+
+    ~AgentResource()
+    {
+        /* enn... */
+    }
 };
 
 class CC {
@@ -62,7 +73,7 @@ public:
     void   CC_help_printf();
     void   CC_print_linePrompt(int id);
     void   CC_print_logo();
-    void   msg_notify(string& msg);
+    void   msg_notify(string& msg, bool enter = true);
     string CC_get_line(int* id);
 
 public:

@@ -143,6 +143,11 @@ std::string HttpResponse::getBodyByString() {
 int HttpResponse::getBodyToFd(int fd, int len, int* Errno) {
     return inBuff_.writeFd(fd, len, Errno);
 }
+void HttpResponse::throwAwayBody()
+{
+    int    len  = std::stoi(getHeader("Content-Length"));
+    inBuff_.retrieve(len);
+}
 
 void HttpResponse::discardBody() {
     int len = std::stoi(getHeader("Content-Length"));

@@ -147,7 +147,16 @@ int SShClient::_events_terminal_writable() {
     }
 
     int len = std::stoi(httpHandler_->getHeader("Content-Length"));
-    ret     = httpHandler_->getBodyToFd(1, len, &Errno);
+    // ::write(1, "\r", 1);
+
+    // if (login_) {
+    //     httpHandler_->throwAwayBody();
+    //     cc_->CC_print_linePrompt(id_);
+    //     again_ = false;
+    // } else{
+    ret = httpHandler_->getBodyToFd(1, len, &Errno);
+    // }
+
     return SUCCESS;
 }
 
@@ -165,19 +174,18 @@ int SShClient::_events_terminal_readable() {
         switch (filterCmds_[splitCmds[0]]) {
             case 1:
                 cc_->CC_help_printf();
-                cmd = "";
-                break;
+                cc_->CC_print_linePrompt(id);
+                return SUCCESS;
 
             case 2:
                 cc_->CC_target_list();
-                cmd = "";
-                break;
+                cc_->CC_print_linePrompt(id);
+                return SUCCESS;
 
             case 3: {
                 again_ = true;
                 // access another target shell-loop
                 int retStatus = cc_->CC_target_select(id);
-
                 // return to main console whatever the retStatus is, because
                 // the call return means CC break out of the loop
 
@@ -186,8 +194,8 @@ int SShClient::_events_terminal_readable() {
 
             case 4:
                 cc_->CC_target_current();
-                cmd = "";
-                break;
+                cc_->CC_print_linePrompt(id);
+                return SUCCESS;
 
             case 5: {
                 std::shared_ptr<HttpResponse> httpHandler2_ =
@@ -201,8 +209,8 @@ int SShClient::_events_terminal_readable() {
                     getFile(httpHandler2_, splitCmds);
                 }
 
-                cmd = "";
-                break;
+                // cc_->CC_print_linePrompt(id);
+                return SUCCESS;
             }
 
             case 6: {
@@ -217,16 +225,20 @@ int SShClient::_events_terminal_readable() {
                     putFile(this->httpHandler_, splitCmds);
                 }
 
-                cmd = "";
-                break;
+                // cc_->CC_print_linePrompt(id);
+                return SUCCESS;
             }
 
             case 7:
+                std::cout << std::endl;
                 return STOP;
 
             default:
                 break;
         }
+    } else {
+        // case 8
+        return SUCCESS;
     }
 
     // 2. system cmd send to agent
@@ -239,7 +251,7 @@ int SShClient::_events_terminal_readable() {
     request.createRequest(&(httpHandler_->outBuff_));
     ret = httpHandler_->write(&Errno);
 
-    return ReturnNum::SUCCESS;
+    return SUCCESS;
 }
 
 int SShClient::putFile(std::shared_ptr<HttpResponse> httpHandler_,
@@ -391,12 +403,21 @@ int SShClient::getFile(std::shared_ptr<HttpResponse> httpHandler,
                 haveRecvd += T2_body;
                 ;
             }
-            if (pro_bar)
+            if (pro_bar) {
                 _progress_bar(filename.c_str(), haveRecvd, filesize);
+            }
         }
     }
 
-    std::cout << "\n";
+    if(!pro_bar)
+    {
+        string tem = " target:";
+        string msg = "[download successfully]:" + tem + cc_->getAgent(id_)->Information_->ip_ + 
+                     ", " + filename + " ,total:" + std::to_string(filesize);
+                cc_->msg_notify(msg);
+    }
+     
+    // std::cout << "\n";
     return SUCCESS;
 }
 

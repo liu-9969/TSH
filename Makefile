@@ -74,7 +74,7 @@ clean:
 	${RM} ${LIB_AGENT_OBJ}  ${LIB_CC_OBJ} ${TSH_CC_OBJ} ${LIB_CCNET_OBJ} ${TSH_AGENT_OBJ} ${LIB_AGENTNET_OBJ}
 
 done:
-	strip agent
+	# strip agent
 	@echo
 	@echo "[Build SUCCESS]"
 
