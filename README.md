@@ -30,7 +30,7 @@ more in img
 
 ## how to work
 
-![](img/Linux 远控TSH工作原理图1.png)
+![](img/Linux远控TSH工作原理图1.png)
 
 
 
